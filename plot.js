@@ -165,44 +165,30 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
       .attr("fill", "none")
       .attr("stroke", d => color(d.key))
       .attr("stroke-width", 2)
-      .attr("d", d => line(d.values));
-
-    svg.selectAll(".hover-dot").remove();
-
-    visible.forEach(group => {
-      svg.selectAll(`.hover-dot-${group.key}`)
-        .data(group.values)
-        .enter()
-        .append("circle")
-        .attr("class", "hover-dot")
-        .attr("cx", d => x(d.norm_time))
-        .attr("cy", d => y(d.mean))
-        .attr("r", 4)
-        .attr("fill", color(group.key))
-        .on("mouseover", (event, d) => {
-          tooltip
-            .style("opacity", 1)
-            .html(`
-              <strong>${selectedVital.toUpperCase()}</strong><br>
-              Time: ${(d.norm_time * 100).toFixed(1)}%<br>
-              Value: ${d.value?.toFixed(1) ?? "N/A"}<br>
-              Mean: ${d.mean?.toFixed(1) ?? "N/A"}<br>
-              SD: ${d.sd?.toFixed(1) ?? "N/A"}
-            `)
-            .style("left", (event.pageX + 10) + "px")
-            .style("top", (event.pageY - 28) + "px");
-        })
-        .on("mouseout", () => {
-          tooltip.style("opacity", 0);
-        });
-    });
+      .attr("d", d => line(d.values))
+      .style("pointer-events", "visibleStroke")
+      .on("mouseover", function(event, d) {
+        const last = d.values[d.values.length - 1];
+        tooltip
+          .style("opacity", 1)
+          .html(`
+            <strong>${selectedVital.toUpperCase()}</strong><br>
+            Group: ${d.key}<br>
+            Final Mean: ${last.mean?.toFixed(1) ?? "N/A"}
+          `)
+          .style("left", (event.pageX + 10) + "px")
+          .style("top", (event.pageY - 28) + "px");
+      })
+      .on("mouseout", function() {
+        tooltip.style("opacity", 0);
+      });
 
     const legendContainer = d3.select("#legend");
     legendContainer.html("");
-    
     const legendItems = legendContainer.selectAll("div")
       .data(summary.map(d => d.key))
-      .enter().append("div")
+      .enter()
+      .append("div")
       .attr("class", "legend-item")
       .style("cursor", "pointer")
       .style("opacity", d => activeGroups.size === 0 || activeGroups.has(d) ? 1 : 0.3)
@@ -214,21 +200,22 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
         }
         updateChart();
       })
-      .on("mouseover", function(event) {
-        const key = d3.select(this).datum();
-        svg.selectAll(".line").style("opacity", d => d.key === key ? 1 : 0.2);
+      .on("mouseover", (event, key) => {
+        svg.selectAll(".line").style("opacity", d => d.key === key ? 1 : 0.1);
+        svg.selectAll(".area").style("opacity", d => d.key === key ? 0.3 : 0.05);
       })
-      .on("mouseout", function() {
+      .on("mouseout", () => {
         svg.selectAll(".line").style("opacity", 1);
+        svg.selectAll(".area").style("opacity", 0.2);
       });
 
-legendItems.append("span")
-  .attr("class", "legend-color")
-  .style("background-color", d => color(d));
+    legendItems.append("span")
+      .attr("class", "legend-color")
+      .style("background-color", d => color(d));
 
-legendItems.append("span")
-  .attr("class", "legend-label")
-  .text(d => d.length > 20 ? d.slice(0, 18) + "…" : d);
+    legendItems.append("span")
+      .attr("class", "legend-label")
+      .text(d => d.length > 20 ? d.slice(0, 18) + "…" : d);
   }
 
   
