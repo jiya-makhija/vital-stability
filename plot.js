@@ -168,13 +168,20 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
       .attr("d", d => line(d.values))
       .style("pointer-events", "visibleStroke")
       .on("mouseover", function(event, d) {
-        const last = d.values[d.values.length - 1];
+        const [xCoord] = d3.pointer(event);
+        const timeAtCursor = x.invert(xCoord);
+        const closest = d.values.reduce((a, b) =>
+          Math.abs(b.norm_time - timeAtCursor) < Math.abs(a.norm_time - timeAtCursor) ? b : a
+        );
         tooltip
           .style("opacity", 1)
           .html(`
             <strong>${selectedVital.toUpperCase()}</strong><br>
             Group: ${d.key}<br>
-            Final Mean: ${last.mean?.toFixed(1) ?? "N/A"}
+            Time: ${(closest.norm_time * 100).toFixed(1)}%<br>
+            Value: ${closest.value?.toFixed(1) ?? "N/A"}<br>
+            Mean: ${closest.mean?.toFixed(1) ?? "N/A"}<br>
+            SD: ${closest.sd?.toFixed(1) ?? "N/A"}
           `)
           .style("left", (event.pageX + 10) + "px")
           .style("top", (event.pageY - 28) + "px");
