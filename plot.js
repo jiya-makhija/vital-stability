@@ -167,6 +167,36 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
       .attr("stroke-width", 2)
       .attr("d", d => line(d.values));
 
+    svg.selectAll(".hover-dot").remove();
+
+    visible.forEach(group => {
+      svg.selectAll(`.hover-dot-${group.key}`)
+        .data(group.values)
+        .enter()
+        .append("circle")
+        .attr("class", "hover-dot")
+        .attr("cx", d => x(d.norm_time))
+        .attr("cy", d => y(d.mean))
+        .attr("r", 4)
+        .attr("fill", color(group.key))
+        .on("mouseover", (event, d) => {
+          tooltip
+            .style("opacity", 1)
+            .html(`
+              <strong>${selectedVital.toUpperCase()}</strong><br>
+              Time: ${(d.norm_time * 100).toFixed(1)}%<br>
+              Value: ${d.value?.toFixed(1) ?? "N/A"}<br>
+              Mean: ${d.mean?.toFixed(1) ?? "N/A"}<br>
+              SD: ${d.sd?.toFixed(1) ?? "N/A"}
+            `)
+            .style("left", (event.pageX + 10) + "px")
+            .style("top", (event.pageY - 28) + "px");
+        })
+        .on("mouseout", () => {
+          tooltip.style("opacity", 0);
+        });
+    });
+
     const legendContainer = d3.select("#legend");
     legendContainer.html("");
     
