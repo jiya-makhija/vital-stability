@@ -109,6 +109,23 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
     const filtered = data.filter(d => d.signal === selectedVital);
 
     const nested = d3.groups(filtered, d => d[selectedGroup]);
+    // Hypotension/Bradycardia/Hypoxia tracking
+  let thresholdSummary = {};
+
+  if (["map", "hr", "spo2"].includes(selectedVital)) {
+    nested.forEach(([key, values]) => {
+      let count = 0;
+      let threshold = 0;
+
+      if (selectedVital === "map") threshold = 60;
+      if (selectedVital === "hr") threshold = 50;
+      if (selectedVital === "spo2") threshold = 92;
+
+      count = values.filter(d => d.value < threshold).length;
+
+      thresholdSummary[key] = ((count / values.length) * 100).toFixed(1); // percent
+    });
+  }
 
     const summary = nested.map(([key, values]) => {
       const binSize = 0.01;
@@ -133,7 +150,7 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
     ]);
 
     renderZones(selectedVital, y);
-    
+
     svg.select(".x-axis").call(xAxis);
     svg.select(".y-axis").call(yAxis);
 
@@ -172,9 +189,34 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
       .attr("class", "legend-color")
       .style("background-color", d => color(d));
     
-    legendItems.append("span")
+      legendItems
+      .append("span")
       .attr("class", "legend-label")
-      .text(d => d.length > 20 ? d.slice(0, 18) + "…" : d);
+      .text(d => d.length > 20 ? d.slice(0, 18) + "…" : d)
+      .on("mouseover", function(event, key) {
+        svg.selectAll(".line").style("opacity", d => d.key === key ? 1 : 0.1);
+    
+        const selectedVital = d3.select("#vitalSelect").property("value");
+        const label = selectedVital === "map" ? "MAP < 60 mmHg"
+                    : selectedVital === "hr" ? "HR < 50 bpm"
+                    : selectedVital === "spo2" ? "SpO₂ < 92%"
+                    : null;
+    
+        if (label && thresholdSummary[key] !== undefined) {
+          tooltip
+            .style("opacity", 1)
+            .html(`
+              <strong>${key}</strong><br>
+              ${label}: ${thresholdSummary[key]}% of time
+            `)
+            .style("left", (event.pageX + 10) + "px")
+            .style("top", (event.pageY - 28) + "px");
+        }
+      })
+      .on("mouseout", function() {
+        svg.selectAll(".line").style("opacity", 1);
+        tooltip.style("opacity", 0);
+      });
   }
   
 
