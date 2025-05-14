@@ -171,54 +171,57 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
     legendContainer.html("");
     
     const legendItems = legendContainer.selectAll("div")
-      .data(summary.map(d => d.key))
-      .enter().append("div")
-      .attr("class", "legend-item")
-      .style("cursor", "pointer")
-      .style("opacity", d => activeGroups.size === 0 || activeGroups.has(d) ? 1 : 0.3)
-      .on("click", (event, key) => {
-        if (activeGroups.has(key)) {
-          activeGroups.delete(key);
-        } else {
-          activeGroups.add(key);
-        }
-        updateChart();
-      });
-    
-    legendItems.append("span")
-      .attr("class", "legend-color")
-      .style("background-color", d => color(d));
-  
-    legendItems
-    .on("mouseover", function(event, key) {
-      svg.selectAll(".line").style("opacity", d => d.key === key ? 1 : 0.1);
-  
-      const selectedVital = d3.select("#vitalSelect").property("value");
-      
-      let label = null;
-      if (selectedVital === "map") label = "MAP < 60 mmHg";
-      else if (selectedVital === "hr") label = "HR < 50 bpm";
-      else if (selectedVital === "spo2") label = "SpO₂ < 92%";
-      else if (selectedVital === "stability_index") label = "Stability Index < 0.5";
-  
-      const percent = thresholdSummary[key];
-  
-      if (label && percent !== undefined) {
-        tooltip
-          .style("opacity", 1)
-          .html(`
-            <strong>${key}</strong><br>
-            ${label}: ${percent}% of time
-          `)
-          .style("left", (event.pageX + 10) + "px")
-          .style("top", (event.pageY - 28) + "px");
-      }
-    })
-    .on("mouseout", function() {
-      svg.selectAll(".line").style("opacity", 1);
-      tooltip.style("opacity", 0);
-    });
+  .data(summary.map(d => d.key))
+  .enter().append("div")
+  .attr("class", "legend-item")
+  .style("cursor", "pointer")
+  .style("opacity", d => activeGroups.size === 0 || activeGroups.has(d) ? 1 : 0.3)
+  .on("click", (event, key) => {
+    if (activeGroups.has(key)) {
+      activeGroups.delete(key);
+    } else {
+      activeGroups.add(key);
+    }
+    updateChart();
+  })
+  .on("mouseover", function(event, key) {
+    svg.selectAll(".line").style("opacity", d => d.key === key ? 1 : 0.1);
+
+    const selectedVital = d3.select("#vitalSelect").property("value");
+
+    let label = null;
+    if (selectedVital === "map") label = "MAP < 60 mmHg";
+    else if (selectedVital === "hr") label = "HR < 50 bpm";
+    else if (selectedVital === "spo2") label = "SpO₂ < 92%";
+    else if (selectedVital === "stability_index") label = "Stability Index < 0.5";
+
+    const percent = thresholdSummary[key];
+
+    if (label && percent !== undefined) {
+      tooltip
+        .style("opacity", 1)
+        .html(`
+          <strong>${key}</strong><br>
+          ${label}: ${percent}% of time
+        `)
+        .style("left", (event.pageX + 10) + "px")
+        .style("top", (event.pageY - 28) + "px");
+    }
+  })
+  .on("mouseout", function() {
+    svg.selectAll(".line").style("opacity", 1);
+    tooltip.style("opacity", 0);
+  });
+
+legendItems.append("span")
+  .attr("class", "legend-color")
+  .style("background-color", d => color(d));
+
+legendItems.append("span")
+  .attr("class", "legend-label")
+  .text(d => d.length > 20 ? d.slice(0, 18) + "…" : d);
   }
+
   
 
   d3.select("#vitalSelect").on("change", updateChart);
