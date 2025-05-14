@@ -194,17 +194,21 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
       svg.selectAll(".line").style("opacity", d => d.key === key ? 1 : 0.1);
   
       const selectedVital = d3.select("#vitalSelect").property("value");
-      const label = selectedVital === "map" ? "MAP < 60 mmHg"
-                  : selectedVital === "hr" ? "HR < 50 bpm"
-                  : selectedVital === "spo2" ? "SpO₂ < 92%"
-                  : null;
+      
+      let label = null;
+      if (selectedVital === "map") label = "MAP < 60 mmHg";
+      else if (selectedVital === "hr") label = "HR < 50 bpm";
+      else if (selectedVital === "spo2") label = "SpO₂ < 92%";
+      else if (selectedVital === "stability_index") label = "Stability Index < 0.5";
   
-      if (label && thresholdSummary[key] !== undefined) {
+      const percent = thresholdSummary[key];
+  
+      if (label && percent !== undefined) {
         tooltip
           .style("opacity", 1)
           .html(`
             <strong>${key}</strong><br>
-            ${label}: ${thresholdSummary[key]}% of time
+            ${label}: ${percent}% of time
           `)
           .style("left", (event.pageX + 10) + "px")
           .style("top", (event.pageY - 28) + "px");
