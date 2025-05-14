@@ -37,7 +37,7 @@ const color = d3.scaleOrdinal(d3.schemeCategory10);
 
 // Load data
 Promise.all([
-  d3.csv("data/cleaned_surgery_vitals_10s.csv", d3.autoType)
+  d3.csv("data/vitals_long_format_10s.csv", d3.autoType)
 ]).then(([data]) => {
   const vitalOptions = ["map", "hr", "spo2"];
   const groupOptions = ["optype", "emop"];
