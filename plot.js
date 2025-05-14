@@ -104,6 +104,32 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
       .attr("stroke", d => color(d.key))
       .attr("stroke-width", 2)
       .attr("d", d => line(d.values));
+
+    const legendContainer = d3.select("#legend");
+    legendContainer.html("");
+    
+    const legendItems = legendContainer.selectAll("div")
+      .data(summary.map(d => d.key))
+      .enter().append("div")
+      .attr("class", "legend-item")
+      .style("cursor", "pointer")
+      .style("opacity", d => activeGroups.size === 0 || activeGroups.has(d) ? 1 : 0.3)
+      .on("click", (event, key) => {
+        if (activeGroups.has(key)) {
+          activeGroups.delete(key);
+        } else {
+          activeGroups.add(key);
+        }
+        updateChart();
+      });
+    
+    legendItems.append("span")
+      .attr("class", "legend-color")
+      .style("background-color", d => color(d));
+    
+    legendItems.append("span")
+      .attr("class", "legend-label")
+      .text(d => d.length > 20 ? d.slice(0, 18) + "…" : d);
   }
 
   d3.select("#vitalSelect").on("change", updateChart);
