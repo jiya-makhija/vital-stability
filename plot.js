@@ -170,7 +170,8 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
             Time: ${(closest.norm_time * 100).toFixed(1)}%<br>
             Mean: ${closest.mean?.toFixed(1) ?? "N/A"}<br>
             SD: ${closest.sd?.toFixed(1) ?? "N/A"}<br>
-            Example Value: ${closest.value?.toFixed(1) ?? "N/A"}
+            Threshold: ${thresholdSummary[d.key] ?? "N/A"}%
+            
           `)
           .style("left", (event.pageX + 10) + "px")
           .style("top", (event.pageY - 28) + "px");
