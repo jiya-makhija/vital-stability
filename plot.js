@@ -59,6 +59,49 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
 
   let activeGroups = new Set();
 
+  function renderZones(selectedVital, y) {
+    svg.selectAll(".danger-zone").remove();
+  
+    const yMin = y.domain()[0];
+    const yMax = y.domain()[1];
+  
+    let zones = [];
+  
+    if (selectedVital === "map") {
+      zones = [
+        { label: "Low MAP (<60)", min: Math.max(0, yMin), max: Math.min(60, yMax), color: "#fdd" },
+        { label: "High MAP (>120)", min: Math.max(120, yMin), max: yMax, color: "#ffe5b4" }
+      ];
+    } else if (selectedVital === "hr") {
+      zones = [
+        { label: "Bradycardia (<50)", min: Math.max(0, yMin), max: Math.min(50, yMax), color: "#fdd" },
+        { label: "Tachycardia (>120)", min: Math.max(120, yMin), max: yMax, color: "#ffe5b4" }
+      ];
+    } else if (selectedVital === "spo2") {
+      zones = [
+        { label: "Low SpO₂ (<90%)", min: Math.max(0, yMin), max: Math.min(90, yMax), color: "#fdd" }
+      ];
+    } else if (selectedVital === "stability_index") {
+      zones = [
+        { label: "Danger Zone (<0.5)", min: Math.max(0, yMin), max: Math.min(0.5, yMax), color: "#fdd" },
+        { label: "Caution Zone (0.5–0.75)", min: Math.max(0.5, yMin), max: Math.min(0.75, yMax), color: "#ffe5b4" }
+      ];
+    }
+  
+    zones.forEach(zone => {
+      if (zone.min < zone.max) {
+        svg.append("rect")
+          .attr("class", "danger-zone")
+          .attr("x", 0)
+          .attr("width", width)
+          .attr("y", y(zone.max))
+          .attr("height", y(zone.min) - y(zone.max))
+          .attr("fill", zone.color)
+          .attr("opacity", 0.2);
+      }
+    });
+  }
+
   function updateChart() {
     const selectedVital = d3.select("#vitalSelect").property("value");
     const selectedGroup = d3.select("#groupSelect").property("value");
@@ -89,6 +132,8 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
       d3.max(visible, s => d3.max(s.values, d => d.mean + (d.sd || 0)))
     ]);
 
+    renderZones(selectedVital, y);
+    
     svg.select(".x-axis").call(xAxis);
     svg.select(".y-axis").call(yAxis);
 
@@ -131,6 +176,7 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
       .attr("class", "legend-label")
       .text(d => d.length > 20 ? d.slice(0, 18) + "…" : d);
   }
+  
 
   d3.select("#vitalSelect").on("change", updateChart);
   d3.select("#groupSelect").on("change", updateChart);
