@@ -135,8 +135,7 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
           return {
             norm_time: +t,
             mean: d3.mean(v),
-            sd: d3.deviation(v),
-            value: v[0]
+            sd: d3.deviation(v)
           };
         });
       return { key, values: binned.sort((a, b) => a.norm_time - b.norm_time) };
