@@ -188,11 +188,8 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
     legendItems.append("span")
       .attr("class", "legend-color")
       .style("background-color", d => color(d));
-    
+  
     legendItems
-    .append("span")
-    .attr("class", "legend-label")
-    .text(d => d.length > 20 ? d.slice(0, 18) + "…" : d)
     .on("mouseover", function(event, key) {
       svg.selectAll(".line").style("opacity", d => d.key === key ? 1 : 0.1);
   
