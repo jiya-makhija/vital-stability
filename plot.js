@@ -22,13 +22,17 @@ svg.append("text")
   .attr("class", "axis-label")
   .text("Progress Through Surgery");
 
-svg.append("text")
+  const yLabel = svg.append("text")
   .attr("text-anchor", "middle")
   .attr("transform", `rotate(-90)`)
   .attr("x", -height / 2)
   .attr("y", -margin.left + 15)
-  .attr("class", "axis-label")
-  .text("Vital Value");
+  .attr("class", "axis-label");
+  
+  function updateYAxisLabel() {
+  const selectedVital = d3.select("#vitalSelect").property("value");
+  yLabel.text(selectedVital === "stability_index" ? "Stability Index" : "Vital Value");
+}
 
 const xAxis = d3.axisBottom(x).tickFormat(d3.format(".0%"));
 const yAxis = d3.axisLeft(y);
@@ -104,7 +108,7 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
 
   d3.select("#vitalSelect").on("change", updateChart);
   d3.select("#groupSelect").on("change", updateChart);
-  d3.select("#vitalSelect").property("value", "map");
+  d3.select("#vitalSelect").property("value", "stability_index");
   d3.select("#groupSelect").property("value", "optype");
   updateChart();
 });
