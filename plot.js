@@ -1,4 +1,3 @@
-// updated to support wide-format vitals file
 const margin = { top: 50, right: 40, bottom: 50, left: 60 };
 const width = 1100 - margin.left - margin.right;
 const height = 400 - margin.top - margin.bottom;
@@ -35,11 +34,9 @@ const xAxis = d3.axisBottom(x).tickFormat(d3.format(".0%"));
 const yAxis = d3.axisLeft(y);
 const color = d3.scaleOrdinal(d3.schemeCategory10);
 
-// Load data
-Promise.all([
-  d3.csv("data/vitals_long_format_10s.csv", d3.autoType)
-]).then(([data]) => {
-  const vitalOptions = ["map", "hr", "spo2"];
+// Load long-format data
+d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
+  const vitalOptions = Array.from(new Set(data.map(d => d.signal)));
   const groupOptions = ["optype", "emop"];
 
   const vitalSelect = d3.select("#vitalSelect")
@@ -62,13 +59,15 @@ Promise.all([
     const selectedVital = d3.select("#vitalSelect").property("value");
     const selectedGroup = d3.select("#groupSelect").property("value");
 
-    const nested = d3.groups(data, d => d[selectedGroup]);
+    const filtered = data.filter(d => d.signal === selectedVital);
+
+    const nested = d3.groups(filtered, d => d[selectedGroup]);
 
     const summary = nested.map(([key, values]) => {
       const binSize = 0.01;
       const binned = d3.groups(values, d => Math.round(d.norm_time / binSize) * binSize)
         .map(([t, pts]) => {
-          const v = pts.map(p => p[selectedVital]);
+          const v = pts.map(p => p.value);
           return {
             norm_time: +t,
             mean: d3.mean(v),
