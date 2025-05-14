@@ -184,7 +184,8 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
     }
     updateChart();
   })
-  .on("mouseover", function(event, key) {
+  .on("mouseover", function(event) {
+    const key = d3.select(this).datum(); 
     svg.selectAll(".line").style("opacity", d => d.key === key ? 1 : 0.1);
 
     const selectedVital = d3.select("#vitalSelect").property("value");
