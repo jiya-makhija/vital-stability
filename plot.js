@@ -189,34 +189,34 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
       .attr("class", "legend-color")
       .style("background-color", d => color(d));
     
-      legendItems
-      .append("span")
-      .attr("class", "legend-label")
-      .text(d => d.length > 20 ? d.slice(0, 18) + "…" : d)
-      .on("mouseover", function(event, key) {
-        svg.selectAll(".line").style("opacity", d => d.key === key ? 1 : 0.1);
-    
-        const selectedVital = d3.select("#vitalSelect").property("value");
-        const label = selectedVital === "map" ? "MAP < 60 mmHg"
-                    : selectedVital === "hr" ? "HR < 50 bpm"
-                    : selectedVital === "spo2" ? "SpO₂ < 92%"
-                    : null;
-    
-        if (label && thresholdSummary[key] !== undefined) {
-          tooltip
-            .style("opacity", 1)
-            .html(`
-              <strong>${key}</strong><br>
-              ${label}: ${thresholdSummary[key]}% of time
-            `)
-            .style("left", (event.pageX + 10) + "px")
-            .style("top", (event.pageY - 28) + "px");
-        }
-      })
-      .on("mouseout", function() {
-        svg.selectAll(".line").style("opacity", 1);
-        tooltip.style("opacity", 0);
-      });
+    legendItems
+    .append("span")
+    .attr("class", "legend-label")
+    .text(d => d.length > 20 ? d.slice(0, 18) + "…" : d)
+    .on("mouseover", function(event, key) {
+      svg.selectAll(".line").style("opacity", d => d.key === key ? 1 : 0.1);
+  
+      const selectedVital = d3.select("#vitalSelect").property("value");
+      const label = selectedVital === "map" ? "MAP < 60 mmHg"
+                  : selectedVital === "hr" ? "HR < 50 bpm"
+                  : selectedVital === "spo2" ? "SpO₂ < 92%"
+                  : null;
+  
+      if (label && thresholdSummary[key] !== undefined) {
+        tooltip
+          .style("opacity", 1)
+          .html(`
+            <strong>${key}</strong><br>
+            ${label}: ${thresholdSummary[key]}% of time
+          `)
+          .style("left", (event.pageX + 10) + "px")
+          .style("top", (event.pageY - 28) + "px");
+      }
+    })
+    .on("mouseout", function() {
+      svg.selectAll(".line").style("opacity", 1);
+      tooltip.style("opacity", 0);
+    });
   }
   
 
