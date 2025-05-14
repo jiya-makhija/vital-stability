@@ -22,14 +22,14 @@ svg.append("text")
   .attr("class", "axis-label")
   .text("Progress Through Surgery");
 
-  const yLabel = svg.append("text")
+const yLabel = svg.append("text")
   .attr("text-anchor", "middle")
   .attr("transform", `rotate(-90)`)
   .attr("x", -height / 2)
   .attr("y", -margin.left + 15)
   .attr("class", "axis-label");
-  
-  function updateYAxisLabel() {
+
+function updateYAxisLabel() {
   const selectedVital = d3.select("#vitalSelect").property("value");
   yLabel.text(selectedVital === "stability_index" ? "Stability Index" : "Vital Value");
 }
@@ -61,12 +61,12 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
 
   function renderZones(selectedVital, y) {
     svg.selectAll(".danger-zone").remove();
-  
+
     const yMin = y.domain()[0];
     const yMax = y.domain()[1];
-  
+
     let zones = [];
-  
+
     if (selectedVital === "map") {
       zones = [
         { label: "Low MAP (<60)", min: Math.max(0, yMin), max: Math.min(60, yMax), color: "#fdd" },
@@ -87,7 +87,7 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
         { label: "Caution Zone (0.5–0.75)", min: Math.max(0.5, yMin), max: Math.min(0.75, yMax), color: "#ffe5b4" }
       ];
     }
-  
+
     zones.forEach(zone => {
       if (zone.min < zone.max) {
         svg.append("rect")
@@ -107,25 +107,16 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
     const selectedGroup = d3.select("#groupSelect").property("value");
 
     const filtered = data.filter(d => d.signal === selectedVital);
-
     const nested = d3.groups(filtered, d => d[selectedGroup]);
-    // Hypotension/Bradycardia/Hypoxia tracking
-  let thresholdSummary = {};
 
-  if (["map", "hr", "spo2"].includes(selectedVital)) {
-    nested.forEach(([key, values]) => {
-      let count = 0;
-      let threshold = 0;
-
-      if (selectedVital === "map") threshold = 60;
-      if (selectedVital === "hr") threshold = 50;
-      if (selectedVital === "spo2") threshold = 92;
-
-      count = values.filter(d => d.value < threshold).length;
-
-      thresholdSummary[key] = ((count / values.length) * 100).toFixed(1); // percent
-    });
-  }
+    let thresholdSummary = {};
+    if (["map", "hr", "spo2"].includes(selectedVital)) {
+      nested.forEach(([key, values]) => {
+        let threshold = selectedVital === "map" ? 60 : selectedVital === "hr" ? 50 : 92;
+        let count = values.filter(d => d.value < threshold).length;
+        thresholdSummary[key] = ((count / values.length) * 100).toFixed(1);
+      });
+    }
 
     const summary = nested.map(([key, values]) => {
       const binSize = 0.01;
@@ -135,7 +126,7 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
           return {
             norm_time: +t,
             mean: d3.mean(v),
-            sd: d3.deviation(v)
+            sd: d3.deviation(v),
           };
         });
       return { key, values: binned.sort((a, b) => a.norm_time - b.norm_time) };
@@ -149,7 +140,6 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
     ]);
 
     renderZones(selectedVital, y);
-
     svg.select(".x-axis").call(xAxis);
     svg.select(".y-axis").call(yAxis);
 
@@ -166,7 +156,7 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
       .attr("stroke-width", 2)
       .attr("d", d => line(d.values))
       .style("pointer-events", "visibleStroke")
-      .on("mouseover", function(event, d) {
+      .on("mousemove", function (event, d) {
         const [xCoord] = d3.pointer(event);
         const timeAtCursor = x.invert(xCoord);
         const closest = d.values.reduce((a, b) =>
@@ -178,14 +168,14 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
             <strong>${selectedVital.toUpperCase()}</strong><br>
             Group: ${d.key}<br>
             Time: ${(closest.norm_time * 100).toFixed(1)}%<br>
-            Value: ${closest.value?.toFixed(1) ?? "N/A"}<br>
             Mean: ${closest.mean?.toFixed(1) ?? "N/A"}<br>
-            SD: ${closest.sd?.toFixed(1) ?? "N/A"}
+            SD: ${closest.sd?.toFixed(1) ?? "N/A"}<br>
+            Example Value: ${closest.value?.toFixed(1) ?? "N/A"}
           `)
           .style("left", (event.pageX + 10) + "px")
           .style("top", (event.pageY - 28) + "px");
       })
-      .on("mouseout", function() {
+      .on("mouseout", function () {
         tooltip.style("opacity", 0);
       });
 
@@ -208,11 +198,9 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
       })
       .on("mouseover", (event, key) => {
         svg.selectAll(".line").style("opacity", d => d.key === key ? 1 : 0.1);
-        svg.selectAll(".area").style("opacity", d => d.key === key ? 0.3 : 0.05);
       })
       .on("mouseout", () => {
         svg.selectAll(".line").style("opacity", 1);
-        svg.selectAll(".area").style("opacity", 0.2);
       });
 
     legendItems.append("span")
@@ -223,8 +211,6 @@ d3.csv("data/vitals_long_format_10s.csv", d3.autoType).then(data => {
       .attr("class", "legend-label")
       .text(d => d.length > 20 ? d.slice(0, 18) + "…" : d);
   }
-
-  
 
   d3.select("#vitalSelect").on("change", updateChart);
   d3.select("#groupSelect").on("change", updateChart);
