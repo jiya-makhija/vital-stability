@@ -61,7 +61,7 @@ let activeGroups = new Set();
 
 //loading all data
 Promise.all([
-    d3.csv("data/surgery_vitals_index.csv", d3.autoType),
+    d3.csv("data/old_surgery_vitals_index.csv", d3.autoType),
     d3.csv("data/anesthetic_start_times.csv", d3.autoType)
     ]).then(([data, anesthetics]) => {
     data.forEach(d => d.signal = d.signal.toLowerCase());
